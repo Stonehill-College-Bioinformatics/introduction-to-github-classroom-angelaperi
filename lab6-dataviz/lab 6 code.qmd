@@ -1,0 +1,152 @@
+---
+
+title: "BIO331 -- Lab 06: Data Visualization"
+subtitle: "Working with data frames and data wrangling in R"
+author: Dee Ruttenberg (Adapted from Scott Wolf, Michelle White)
+date: Mar. 4, 2026
+output: html_document
+---
+
+Today we will be using ggplot2.  Ggplot2 allows us to directly make all sorts of data visualizations based on dataframes.  We will be using the same nycflights dataset we did last time:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(nycflights13)
+```
+
+```{r}
+library(nycflights13) 
+flights = flights
+head(flights)
+```
+
+Ggplot has a slightly unintuitive syntax at first, but once you get a hang of it, you will be making flat-out gorgeous figures requiring way less work than excel. It works by first specifying columns in a ggplot to be your variables (called your primitives)
+
+```{r}
+delay <-  ggplot(flights, aes(dep_delay))
+expectedtime <- ggplot(flights, aes(x = sched_arr_time, y = arr_time))
+```
+
+We can apply a geom function to the primitive to create all sorts of graphs!  Here are a few examples, but in your work you'll be making lots of other graphs.
+
+```{r}
+delay + geom_freqpoly()
+```
+
+```{r}
+delay + geom_histogram()
+```
+
+We can similarly, using these functions, specify aesthetics to change how the plot looks:
+
+```{r}
+delay + geom_histogram(bins=200, fill="red") 
+```
+
+If we have issues with the data (for instance, say we only want to look at flights delayed by less than an hour), we can also change the dataset itself. 
+
+```{r}
+library(dplyr)
+flights_delay = flights %>% filter(dep_delay <= 60)
+ggplot(flights_delay, aes(dep_delay)) + geom_histogram(bins=30) 
+```
+
+GGplot can also compare the relationships between two variables, whether continuous:
+```{r}
+expectedtime <- ggplot(flights, aes(x = sched_arr_time, y = arr_time))
+expectedtime + geom_point()
+```
+Or discrete and continuous
+```{r}
+arr_delay <- ggplot(flights_delay, aes(x = origin, y = arr_delay))
+arr_delay + geom_boxplot()
+```
+
+Finally, you can use the group function to compare variables across a specific axis (you can also use facets, which you'll need to learn to do yourself on the hw):
+
+```{r}
+expectedtime <- ggplot(flights, aes(x = sched_arr_time, y = arr_time))
+expectedtime + geom_point(aes(color=origin))
+```
+
+Ggplot, finally, is good at overlaying geoms in order to make more complex graphs:
+
+```{r}
+expectedtime <- ggplot(flights, aes(x = sched_arr_time, y = arr_time))
+expectedtime + geom_point() + geom_abline(color="green", aes(intercept = 0, slope = 1)) 
+```
+
+## Notes for Assignment
+- Check out the cheat sheet for ggplot2: [Data Visualization with ggplot2: CHEAT SHEET](https://rstudio.github.io/cheatsheets/html/data-visualization.html)
+- *Deadline is back to one week from the original precept date.*
+- *Please save each plot as an image (.png or .jpg) and upload them to your GitHub repository (4 images total).*
+
+```{r, echo = T, message = F, results = "hide", warning = F}
+# R
+library(pak)
+packages <- c("ggplot2", "cowplot", "ggthemes", "patchwork")
+pak::pkg_install(packages)
+
+lapply(packages, require, character.only = TRUE)
+```
+
+## Exercises
+
+### Exercise 1 -- Bar Plot Modification
+
+- **Task:**
+   * Add a title to the plot: "Distribution of Cars by Class".
+   * Change the x-axis label to "Type of Car".
+   * Color the bars in blue.
+   * Rotate the x-axis labels by 45 degrees.
+
+- **Expected Output:** An updated plot with the above specifications.
+
+Initial Plot: A simple bar plot displaying the number of cars for each class in the mpg dataset.
+```{r, fig.show='hide'}
+# R
+ggplot(data = mpg, aes(x = class)) +
+  geom_bar(fill = "blue")
+labs(title = "Distribution of Cars by Class", x = "Type of Car") +
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+### Exercise 2 -- Histogram Modification
+
+- **Task:** 
+  * Add a title to the plot: "Highway Mileage Distribution".
+  * Change the x-axis label to "Miles Per Gallon".
+  * Fill the histogram bars with green but have a black border.
+  * Set the bin width to 2.
+
+- **Expected Output:** An updated plot with the above specifications.
+
+Initial Plot: A histogram showcasing the distribution of highway miles per gallon (hwy) from the mpg dataset.
+```{r, fig.show='hide'}
+# R
+ggplot(data = mpg, aes(x = hwy)) + 
+  geom_histogram(binwidth = 2, fill = "green",color = "black") +
+  labs(title = "Highway Mileage Distribution", x = "Miles Per Gallon")
+```
+
+### Exercise 3 -- Scatter Plot with Facets
+
+- **Task:**
+   * Add a title: "Engine Displacement vs. Highway MPG".
+   * Change the x-axis label to "Engine Size (liters)" and y-axis label to "Highway MPG".
+   * Color the points by class and shape them by the type of drive (e.g., 4wd, fwd, rwd).
+   * Add a smooth trend line (with standard error or confidence interval) to the plot. Consider adjusting the alpha of the points for clarity.
+   * Facet the plot by cyl (number of cylinders) in a 2x2 grid format.
+
+- **Expected Output:** An updated plot with the above specifications.
+
+Initial Plot: A scatter plot illustrating the relationship between engine displacement (displ) and highway MPG (hwy).
+```{r, fig.show='hide'}
+# R
+ggplot(data = mpg, aes(x = displ, y = hwy, color = class, shape = drv)) + 
+  geom_point(alpha = 0.6) +
+  geom_smooth() +
+  labs(title = "Engine Displacement vs. Highway MPG", x = "Engine Size (liters)", y = "Highway MPG") +
+  facet_wrap(~cyl, nrow = 2)
+```
+
